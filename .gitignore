@@ -1,0 +1,13 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+*.pyc
+backend/.env
+
+# Node (in case any vendoring scaffolding gets left behind again)
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db

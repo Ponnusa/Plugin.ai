@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Beacon AI",
+  "version": "0.1.0",
+  "description": "Voice-controlled AI accessibility assistant for the web.",
+  "permissions": ["activeTab", "scripting", "tabs", "sidePanel", "storage"],
+  "host_permissions": ["http://*/*", "https://*/*", "http://localhost:8000/*", "file:///*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

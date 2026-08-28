@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Set Up Microphone Access — Beacon AI</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Set Up Microphone Access</h1>
+    <p class="tagline">This only needs to happen once.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <p class="onboarding-prompt">
+        Click the button below, then choose "Allow" when your browser asks for microphone access.
+      </p>
+      <div class="onboarding-actions">
+        <button id="allowMicBtn" class="primary">Allow Microphone Access</button>
+      </div>
+      <p id="micSetupStatus" class="status-text" role="status"></p>
+    </section>
+  </main>
+
+  <script src="mic-setup.js"></script>
+</body>
+</html>

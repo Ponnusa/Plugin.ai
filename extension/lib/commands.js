@@ -1,0 +1,131 @@
+(function (root) {
+  const PERCENT_WORDS = { "hundred": 100 };
+
+  function parsePercent(text) {
+    const numMatch = text.match(/(\d{1,3})\s*(?:%|percent)?/);
+    if (numMatch) {
+      const n = parseInt(numMatch[1], 10);
+      if (!Number.isNaN(n)) return n;
+    }
+    for (const word in PERCENT_WORDS) {
+      if (text.includes(word)) return PERCENT_WORDS[word];
+    }
+    return null;
+  }
+
+  function parseCount(text, fallback) {
+    const match = text.match(/\b(\d{1,2})\b/);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      if (!Number.isNaN(n) && n > 0) return n;
+    }
+    return fallback;
+  }
+
+  const DEFINE_PATTERNS = [
+    /^define\s+(.+)$/,
+    /what does\s+(.+?)\s+mean\??$/,
+    /meaning of\s+(.+)$/,
+  ];
+
+  function parseDefineTerm(text) {
+    for (const pattern of DEFINE_PATTERNS) {
+      const m = text.match(pattern);
+      if (m && m[1]) return m[1].trim();
+    }
+    return null;
+  }
+
+  const RULES = [
+    { command: "zoomReset", test: (t) => /reset zoom|zoom (?:in )?to (100\s*(%|percent)?|normal)\b|default zoom/.test(t) },
+    { command: "zoomTo", test: (t) => /zoom (?:in )?to\b/.test(t), args: (t) => ({ percent: parsePercent(t) }) },
+    { command: "zoomIn", test: (t) => /zoom in\b|increase zoom|make (it|this) bigger/.test(t) },
+    { command: "zoomOut", test: (t) => /zoom out\b|decrease zoom|make (it|this) smaller/.test(t) },
+    { command: "scrollToTop", test: (t) => /scroll to (the )?top|go to (the )?top/.test(t) },
+    { command: "scrollToBottom", test: (t) => /scroll to (the )?bottom|go to (the )?bottom/.test(t) },
+    { command: "scrollUp", test: (t) => /scroll up/.test(t) },
+    { command: "scrollDown", test: (t) => /scroll down/.test(t) },
+    { command: "goBack", test: (t) => /go back|navigate back|previous page/.test(t) },
+    { command: "goForward", test: (t) => /go forward|navigate forward|next page/.test(t) },
+    { command: "speechRateReset", test: (t) => /(reset|normal|default) (speech |talking |reading )?speed/.test(t) },
+    { command: "speechFaster", test: (t) => /speak fast(er)?\b|talk fast(er)?\b|read fast(er)?\b|speed up|increase (speech |talking |reading )?speed/.test(t) },
+    { command: "speechSlower", test: (t) => /speak slow(er)?\b|talk slow(er)?\b|read slow(er)?\b|slow down|decrease (speech |talking |reading )?speed/.test(t) },
+    { command: "resumeSpeech", test: (t) => /continue reading|resume reading|keep reading|continue speaking|keep going|resume speaking/.test(t) },
+    {
+      command: "keyPoints",
+      test: (t) => /key points|main points|top points|bullet points|quick points/.test(t),
+      args: (t) => ({ count: parseCount(t, 3) }),
+    },
+    {
+      command: "simplify",
+      test: (t) =>
+        /simplify this|explain (this )?simply|explain (this )?like i'?m five|make this simpler|simpler language|plain language/.test(
+          t
+        ),
+    },
+    {
+      command: "defineWord",
+      test: (t) => parseDefineTerm(t) !== null,
+      args: (t) => ({ term: parseDefineTerm(t) }),
+    },
+    { command: "redoSetup", test: (t) => /redo setup|run setup again|set up again|start setup over/.test(t) },
+    {
+      command: "switchTheme",
+      test: (t) => /dark theme|dark mode|switch to dark/.test(t),
+      args: () => ({ theme: "dark" }),
+    },
+    {
+      command: "switchTheme",
+      test: (t) => /yellow background|yellow theme|black on yellow/.test(t),
+      args: () => ({ theme: "yellow-black" }),
+    },
+    {
+      command: "switchTheme",
+      test: (t) => /yellow on black|yellow text/.test(t),
+      args: () => ({ theme: "black-yellow" }),
+    },
+    {
+      command: "switchTheme",
+      test: (t) => /light theme|light mode|white background|default theme|normal theme|reset theme/.test(t),
+      args: () => ({ theme: "light" }),
+    },
+    // Specific "help with X" phrasings must be checked before the generic
+    // helpOverview catch-all below, or they'd never be reached (same ordering
+    // lesson as zoomReset vs. zoomTo earlier).
+    { command: "helpNavigation", test: (t) => /help with navigation|navigation commands|navigation help/.test(t) },
+    {
+      command: "helpUnderstanding",
+      test: (t) => /help with understanding|understanding commands|content help/.test(t),
+    },
+    { command: "helpSettings", test: (t) => /help with settings|settings commands|speech help/.test(t) },
+    {
+      command: "helpOverview",
+      test: (t) => /^help\??$|what can i say|what can you do|what commands|list commands/.test(t),
+    },
+    {
+      command: "privacyInfo",
+      test: (t) => /privacy|what happens to my data|data privacy|is this private|is my data safe/.test(t),
+    },
+  ];
+
+  function matchIntent(rawText) {
+    if (!rawText || typeof rawText !== "string") return null;
+    const text = rawText.trim().toLowerCase();
+    if (!text) return null;
+
+    for (const rule of RULES) {
+      if (rule.test(text)) {
+        return { command: rule.command, args: rule.args ? rule.args(text) : {} };
+      }
+    }
+    return null;
+  }
+
+  const api = { matchIntent };
+
+  if (typeof module === "object" && module.exports) {
+    module.exports = api;
+  } else {
+    root.BeaconCommands = api;
+  }
+})(typeof self !== "undefined" ? self : this);

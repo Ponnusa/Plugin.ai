@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Beacon AI</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Beacon AI</h1>
+    <p class="tagline">Voice assistant for this page</p>
+  </header>
+
+  <main>
+    <section id="onboarding" class="card onboarding" hidden aria-labelledby="onboardingHeading">
+      <h2 id="onboardingHeading">Let's get set up</h2>
+      <p id="onboardingPrompt" class="onboarding-prompt" role="status"></p>
+      <div id="onboardingActions" class="onboarding-actions"></div>
+      <button id="skipOnboardingBtn" class="link-button">Skip for now</button>
+    </section>
+
+    <div id="mainContent">
+      <section class="card" aria-labelledby="voiceHeading">
+        <h2 id="voiceHeading" class="visually-hidden">Voice control</h2>
+
+        <button id="listenBtn" class="mic-button" aria-pressed="false">
+          <span class="mic-dot" aria-hidden="true"></span>
+          <span class="mic-label">Start Listening</span>
+        </button>
+
+        <button id="stopSpeakingBtn" class="stop-button" hidden>Stop Speaking</button>
+
+        <div class="status-row">
+          <span id="busySpinner" class="spinner" aria-hidden="true" hidden></span>
+          <p id="voiceStatus" class="status-text" role="status"></p>
+        </div>
+        <p id="transcript" class="transcript-text"></p>
+
+        <button id="micSetupBtn" class="link-button" hidden>Set Up Microphone Access</button>
+        <button id="helpBtn" class="link-button">What can I say?</button>
+        <button id="privacyBtn" class="link-button">Privacy &amp; Data</button>
+
+        <div id="aiResponse" class="response-box" role="region" aria-label="Response"></div>
+      </section>
+
+      <details class="card card--secondary">
+        <summary>Extract page text (debug)</summary>
+        <button id="extractBtn" class="secondary-button">Extract Page Text</button>
+        <p id="status" class="status-text" role="status"></p>
+        <pre id="output" class="output-box"></pre>
+      </details>
+
+      <button id="redoSetupBtn" class="link-button">Redo Setup</button>
+    </div>
+  </main>
+
+  <script src="../lib/commands.js"></script>
+  <script src="../lib/pageCache.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
