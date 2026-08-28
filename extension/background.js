@@ -146,7 +146,7 @@ async function executeCommand(tabId, command, args) {
   }
 }
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://beacon-ai-production-4999.up.railway.app"; // set to "http://localhost:8000" for local backend dev
 
 async function callBackend(pageTitle, pageText, query) {
   const res = await fetch(`${BACKEND_URL}/query`, {
