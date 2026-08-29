@@ -25,16 +25,35 @@ The extension already points at a **deployed backend** (Railway), so you don't n
 2. Turn on **Developer mode** (top-right toggle)
 3. Click **Load unpacked**
 4. Select the `extension/` folder from this repo
+
+![Chrome extensions page with Developer mode on and Load unpacked highlighted](docs/images/load-unpacked.png)
+
 5. Pin the extension (puzzle-piece icon in the toolbar → pin Beacon AI)
 6. Click the Beacon AI icon — it opens a side panel, not a popup
+
+![Beacon AI side panel open next to a Wikipedia article](docs/images/side-panel-main.png)
 
 **Allow local file access** (needed for the PDF-reading feature, and for anything read from a local file):
 - Go to `chrome://extensions`, find Beacon AI → **Details**
 - Toggle **"Allow access to file URLs"** on
 
+![Extension details page with "Allow access to file URLs" toggle highlighted](docs/images/allow-file-urls.png)
+
 ### First run
 
 The panel walks you through a short setup automatically the first time: speech rate, page zoom, and contrast theme, each calibrated by trying it live and confirming it's comfortable. You can redo this any time — say **"redo setup"** or click the **Redo Setup** link in the panel.
+
+Zoom calibration applies a candidate zoom to the real page behind the panel, not just a description:
+
+![Onboarding zoom step showing the actual page zoomed to 200 percent](docs/images/onboarding-zoom.png)
+
+Theme calibration previews live on both the panel and the page at once:
+
+![Onboarding theme step showing yellow background, black text applied to both panel and page](docs/images/onboarding-theme.png)
+
+Once a theme is chosen, it applies to any page you read — not just the panel. Here's the same Wikipedia article in all four themes:
+
+![The same Wikipedia page shown in light, dark, yellow-black, and black-yellow themes](docs/images/contrast-themes.png)
 
 ### Microphone permission (one-time, Chrome-specific quirk)
 
@@ -44,6 +63,8 @@ Chrome doesn't reliably prompt for microphone access from inside a side panel �
 2. A new tab opens with one button — click **"Allow Microphone Access"**
 3. Approve the browser's permission prompt in that tab
 4. Close the tab and go back to the side panel — it should now work
+
+![The dedicated mic-setup tab next to the side panel, with "Set Up Microphone Access" highlighted](docs/images/mic-setup.png)
 
 ### Try it
 
