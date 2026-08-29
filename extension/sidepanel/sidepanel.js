@@ -691,6 +691,26 @@ function handleTranscript(transcript) {
     return;
   }
 
+  if (intent.command === "googleSearch") {
+    const term = intent.args?.term;
+    const url = `https://www.google.com/search?q=${encodeURIComponent(term)}`;
+    voiceStatusEl.textContent = `Searching Google for "${term}"`;
+    setBusy(true);
+    chrome.runtime.sendMessage({ type: "EXECUTE_COMMAND", command: "navigateTo", args: { url } }, (response) => {
+      setBusy(false);
+      if (chrome.runtime.lastError || !response || response.error) {
+        const message = "I couldn't open that search.";
+        voiceStatusEl.textContent = message;
+        speak(message);
+        return;
+      }
+      const confirmation = `Searching Google for ${term}`;
+      voiceStatusEl.textContent = confirmation;
+      speak(confirmation);
+    });
+    return;
+  }
+
   if (intent.command === "redoSetup") {
     onboardingZoomPercent = 100;
     onboardingThemeIndex = 0;

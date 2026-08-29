@@ -210,6 +210,20 @@ async function executeCommand(tabId, command, args) {
     case "goForward":
       await chrome.tabs.goForward(tabId);
       return {};
+    case "navigateTo": {
+      const url = args?.url;
+      if (!url) return { error: "invalid_url" };
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          return { error: "invalid_url" };
+        }
+      } catch {
+        return { error: "invalid_url" };
+      }
+      await chrome.tabs.update(tabId, { url });
+      return {};
+    }
     default:
       return { error: "unknown_command" };
   }

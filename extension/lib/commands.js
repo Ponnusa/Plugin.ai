@@ -7,8 +7,9 @@
       const n = parseInt(numMatch[1], 10);
       if (!Number.isNaN(n)) return n;
     }
+    const lower = text.toLowerCase();
     for (const word in PERCENT_WORDS) {
-      if (text.includes(word)) return PERCENT_WORDS[word];
+      if (lower.includes(word)) return PERCENT_WORDS[word];
     }
     return null;
   }
@@ -23,13 +24,28 @@
   }
 
   const DEFINE_PATTERNS = [
-    /^define\s+(.+)$/,
-    /what does\s+(.+?)\s+mean\??$/,
-    /meaning of\s+(.+)$/,
+    /^define\s+(.+)$/i,
+    /what does\s+(.+?)\s+mean\??$/i,
+    /meaning of\s+(.+)$/i,
   ];
 
   function parseDefineTerm(text) {
     for (const pattern of DEFINE_PATTERNS) {
+      const m = text.match(pattern);
+      if (m && m[1]) return m[1].trim();
+    }
+    return null;
+  }
+
+  const SEARCH_PATTERNS = [
+    /^search (?:google )?for\s+(.+)$/i,
+    /^google\s+(.+)$/i,
+    /^look up\s+(.+)$/i,
+    /^search\s+(.+)$/i,
+  ];
+
+  function parseSearchTerm(text) {
+    for (const pattern of SEARCH_PATTERNS) {
       const m = text.match(pattern);
       if (m && m[1]) return m[1].trim();
     }
@@ -67,6 +83,14 @@
       command: "defineWord",
       test: (t) => parseDefineTerm(t) !== null,
       args: (t) => ({ term: parseDefineTerm(t) }),
+    },
+    {
+      // Broad "search X" catch-all — kept late in the rule order (same
+      // lesson as zoomReset vs. zoomTo) so more specific commands above it
+      // always get first chance to match.
+      command: "googleSearch",
+      test: (t) => parseSearchTerm(t) !== null,
+      args: (t) => ({ term: parseSearchTerm(t) }),
     },
     { command: "redoSetup", test: (t) => /redo setup|run setup again|set up again|start setup over/.test(t) },
     {
@@ -110,12 +134,16 @@
 
   function matchIntent(rawText) {
     if (!rawText || typeof rawText !== "string") return null;
-    const text = rawText.trim().toLowerCase();
+    const original = rawText.trim();
+    const text = original.toLowerCase();
     if (!text) return null;
 
     for (const rule of RULES) {
       if (rule.test(text)) {
-        return { command: rule.command, args: rule.args ? rule.args(text) : {} };
+        // Matching is case-insensitive, but args are extracted from the
+        // original-case text so captured terms (e.g. "MABVI", proper nouns)
+        // aren't flattened to lowercase before being spoken back.
+        return { command: rule.command, args: rule.args ? rule.args(original) : {} };
       }
     }
     return null;

@@ -78,6 +78,33 @@ test("define word command", () => {
   });
 });
 
+test("google search command", () => {
+  assert.deepEqual(matchIntent("search google for diabetes"), {
+    command: "googleSearch",
+    args: { term: "diabetes" },
+  });
+  assert.deepEqual(matchIntent("search for MABVI"), {
+    command: "googleSearch",
+    args: { term: "MABVI" },
+  });
+  assert.deepEqual(matchIntent("google retinitis pigmentosa"), {
+    command: "googleSearch",
+    args: { term: "retinitis pigmentosa" },
+  });
+  assert.deepEqual(matchIntent("look up screen readers"), {
+    command: "googleSearch",
+    args: { term: "screen readers" },
+  });
+});
+
+test("google search does not swallow more specific commands", () => {
+  // Regression guard: a broad "search X" pattern must not steal phrases
+  // that belong to earlier, more specific rules.
+  assert.deepEqual(matchIntent("give me the key points"), { command: "keyPoints", args: { count: 3 } });
+  assert.deepEqual(matchIntent("define osmosis"), { command: "defineWord", args: { term: "osmosis" } });
+  assert.deepEqual(matchIntent("redo setup"), { command: "redoSetup", args: {} });
+});
+
 test("redo setup command", () => {
   assert.deepEqual(matchIntent("redo setup"), { command: "redoSetup", args: {} });
   assert.deepEqual(matchIntent("run setup again"), { command: "redoSetup", args: {} });
