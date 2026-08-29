@@ -91,7 +91,7 @@ Beacon AI helps blind and low-vision users understand and navigate webpages thro
 **Privacy policy URL:**
 ```
 [Fill in once GitHub Pages is enabled — see below. Will be something like:
-https://ponnusa.github.io/beacon-ai/privacy-policy.html]
+https://ponnusa.github.io/Plugin.ai/privacy-policy.html]
 ```
 
 **Permission justifications** (paste per permission in the dashboard's justification fields):
@@ -128,8 +128,8 @@ The privacy policy page already exists at `docs/privacy-policy.html` in the repo
 
 1. Go to the repo on GitHub → **Settings** → **Pages**
 2. Under "Source," select the `main` branch and `/docs` folder
-3. Save — GitHub will publish the whole `docs/` folder at `https://ponnusa.github.io/beacon-ai/`
-4. The privacy policy will then be live at `https://ponnusa.github.io/beacon-ai/privacy-policy.html`
+3. Save — GitHub will publish the whole `docs/` folder at `https://ponnusa.github.io/Plugin.ai/`
+4. The privacy policy will then be live at `https://ponnusa.github.io/Plugin.ai/privacy-policy.html`
 
 I can't flip this toggle for you — it's a one-time step in GitHub's own settings UI.
 
