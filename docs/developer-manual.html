@@ -167,6 +167,7 @@
   <li><em>"summarize this page"</em>, <em>"give me the key points"</em>, <em>"read this page"</em></li>
   <li><em>"zoom in"</em>, <em>"scroll down"</em>, <em>"go back"</em></li>
   <li><em>"translate this to Spanish"</em>, <em>"define [some word]"</em></li>
+  <li><em>"search for [a topic]"</em>, then <em>"list results"</em> or <em>"open the first one"</em> / <em>"open result 2"</em></li>
   <li><em>"speak faster"</em> / <em>"speak slower"</em></li>
   <li><em>"dark theme"</em>, <em>"yellow on black"</em></li>
   <li><em>"privacy"</em> — what happens to your data</li>
@@ -204,9 +205,10 @@ node --test test/commands.test.js</pre>
 <h2>Extension</h2>
 <pre>extension/
   manifest.json          — MV3 config, permissions, side panel registration
-  background.js           — service worker: tab commands (zoom/scroll/nav), AI backend calls,
-                             page-content/PDF extraction caching, ambient zoom + contrast theme
-  content.js               — injected into pages on demand; runs Readability.js extraction
+  background.js           — service worker: tab commands (zoom/scroll/nav/navigateTo), AI backend
+                             calls, page-content/PDF extraction caching, ambient zoom + contrast theme
+  content.js               — injected into pages on demand; runs Readability.js extraction, plus
+                             live-DOM link extraction for "list results" / "open result N"
   lib/
     commands.js              — voice -> intent matching (regex-based), fully unit tested
     pageCache.js              — chrome.storage.session-backed extraction cache

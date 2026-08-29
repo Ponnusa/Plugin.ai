@@ -126,6 +126,13 @@
         /\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\d{1,2}(st|nd|rd|th)?)\b/.test(t),
       args: (t) => ({ position: parseOrdinal(t) }),
     },
+    // helpSearching must be checked before googleSearch's broad "search X"
+    // catch-all below, or "search commands" gets swallowed as a literal
+    // search for the word "commands" -- caught by testing, not by inspection.
+    {
+      command: "helpSearching",
+      test: (t) => /help with searching|search(ing)? commands|search help/.test(t),
+    },
     {
       // Broad "search X" catch-all — kept late in the rule order (same
       // lesson as zoomReset vs. zoomTo) so more specific commands above it

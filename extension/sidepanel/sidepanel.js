@@ -142,8 +142,8 @@ const CONFIRMATIONS = {
 const HELP_TEXT = {
   helpOverview:
     "Here's what I can help with. Say \"help with navigation\" to move around the page. Say \"help with " +
-    'understanding" to read, summarize, or ask about this page. Or say "help with settings" to adjust speech ' +
-    "and appearance.",
+    'understanding" to read, summarize, or ask about this page. Say "help with searching" to look things up ' +
+    'and open a result. Or say "help with settings" to adjust speech and appearance.',
   helpNavigation:
     "For navigation, you can say: zoom in, zoom out, or zoom to a percent; scroll up, down, to the top, or to " +
     "the bottom; and go back or go forward.",
@@ -151,6 +151,10 @@ const HELP_TEXT = {
     "To understand this page, you can say: read this page; summarize this page; give me the key points; " +
     'simplify this; define a word, like "define osmosis"; translate this to a language, like "translate this ' +
     'to Spanish"; or just ask me any question about the page.',
+  helpSearching:
+    'To search and open other pages, you can say: search for a topic, like "search for diabetes"; then say ' +
+    '"list results" to hear the results as a numbered list, or go straight to one by saying "open the first ' +
+    'one" or "open result two."',
   helpSettings:
     "For settings, you can say: speak faster or slower; continue reading; switch to a dark theme, yellow " +
     "background, or yellow on black; redo setup to recalibrate everything; and say \"privacy\" any time to " +

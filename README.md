@@ -73,6 +73,7 @@ Click **"What can I say?"** in the panel (or say "help") for a categorized list 
 - *"summarize this page"*, *"give me the key points"*, *"read this page"*
 - *"zoom in"*, *"scroll down"*, *"go back"*
 - *"translate this to Spanish"*, *"define [some word]"*
+- *"search for [a topic]"*, then *"list results"* or *"open the first one"* / *"open result 2"*
 - *"speak faster"* / *"speak slower"*
 - *"dark theme"*, *"yellow on black"* — changes both the panel and the actual page you're reading
 - *"privacy"* — explains exactly what data goes where

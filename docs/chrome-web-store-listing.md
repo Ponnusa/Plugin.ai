@@ -45,6 +45,11 @@ READ AND UNDERSTAND ANY PAGE
 NAVIGATE HANDS-FREE
 - "Zoom in," "zoom to 200 percent," "scroll to the top," "go back"
 
+SEARCH THE WEB AND OPEN RESULTS BY VOICE
+- "Search for [a topic]" to look something up
+- "List results" to hear a numbered list of what came back
+- "Open the first one," "open result two," or "choose the third one" to go straight there
+
 MAKE IT COMFORTABLE FOR YOU
 - Adjustable speech rate, page magnification, and contrast themes (including yellow-on-black and black-on-yellow), calibrated during a short guided setup — and re-applied automatically every time you browse
 - "Continue reading" resumes exactly where you left off if you're interrupted

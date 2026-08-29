@@ -149,6 +149,8 @@ test("help commands — specific categories win over the generic catch-all", () 
   assert.deepEqual(matchIntent("navigation commands"), { command: "helpNavigation", args: {} });
   assert.deepEqual(matchIntent("help with understanding"), { command: "helpUnderstanding", args: {} });
   assert.deepEqual(matchIntent("help with settings"), { command: "helpSettings", args: {} });
+  assert.deepEqual(matchIntent("help with searching"), { command: "helpSearching", args: {} });
+  assert.deepEqual(matchIntent("search commands"), { command: "helpSearching", args: {} });
   assert.deepEqual(matchIntent("help"), { command: "helpOverview", args: {} });
   assert.deepEqual(matchIntent("what can I say"), { command: "helpOverview", args: {} });
   assert.deepEqual(matchIntent("what can you do"), { command: "helpOverview", args: {} });
@@ -158,6 +160,18 @@ test("privacy info command", () => {
   assert.deepEqual(matchIntent("privacy"), { command: "privacyInfo", args: {} });
   assert.deepEqual(matchIntent("what happens to my data"), { command: "privacyInfo", args: {} });
   assert.deepEqual(matchIntent("is my data safe"), { command: "privacyInfo", args: {} });
+});
+
+test("regression: reordering help/search rules must not break define or search", () => {
+  // "define privacy" broke briefly while fixing the "search commands" bug
+  // above -- moving privacyInfo's bare "privacy" match ahead of defineWord
+  // stole this phrase. Both must hold at once.
+  assert.deepEqual(matchIntent("define privacy"), { command: "defineWord", args: { term: "privacy" } });
+  assert.deepEqual(matchIntent("search commands"), { command: "helpSearching", args: {} });
+  assert.deepEqual(matchIntent("search for privacy policies"), {
+    command: "googleSearch",
+    args: { term: "privacy policies" },
+  });
 });
 
 test("no match returns null", () => {
