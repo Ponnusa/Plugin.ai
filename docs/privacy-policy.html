@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Beacon AI — Privacy Policy</title>
+<style>
+  body {
+    font-family: "Segoe UI", -apple-system, Arial, sans-serif;
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #14171a;
+  }
+  h1 { color: #1a56db; }
+  h2 { margin-top: 32px; font-size: 18px; }
+  .updated { color: #6b7280; font-size: 14px; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  .callout {
+    background: #f5f7f8;
+    border-left: 4px solid #1a56db;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Beacon AI — Privacy Policy</h1>
+<p class="updated">Last updated: August 2026</p>
+
+<p>Beacon AI is a Chrome extension that lets you control and understand webpages by voice, using AI to read, summarize, translate, and answer questions about page content. This page explains, plainly, what data Beacon AI handles and where it goes.</p>
+
+<div class="callout">
+  <strong>In short:</strong> your voice is transcribed by Google's speech recognition service and never stored by Beacon AI. Page text you ask about is sent to Anthropic's Claude AI service to generate a response. Your personal preferences stay on your own device. Beacon AI does not require an account, does not collect personally identifiable information, and does not keep a permanent record of what you've asked or read.
+</div>
+
+<h2>What data is processed, and by whom</h2>
+<ul>
+  <li><strong>Voice audio</strong> — when you use voice commands, your speech is sent to Google's speech recognition service (via the browser's built-in Web Speech API) to convert it to text. Beacon AI itself does not record, store, or have access to raw audio beyond this transcription step.</li>
+  <li><strong>Page content</strong> — when you ask Beacon AI to read, summarize, translate, simplify, or answer a question about a page, the visible text of that page is sent to Anthropic's Claude API to generate a response. Only content readable on the page is sent — never information you type into forms, passwords, or other private input fields, since Beacon AI does not read user-entered form data at all.</li>
+  <li><strong>Your spoken request text</strong> (the transcribed version of what you said) is sent alongside the page content to generate a relevant response.</li>
+</ul>
+
+<h2>What is stored, and where</h2>
+<ul>
+  <li><strong>Preferences</strong> (speech rate, zoom level, color theme, onboarding status) are stored locally on your device via the browser's extension storage. They are never transmitted anywhere.</li>
+  <li><strong>Page extraction cache</strong> — to avoid re-processing the same page repeatedly, Beacon AI temporarily caches extracted page text in the browser's session storage. This is cleared automatically when you navigate away, refresh, or close the tab, and is never sent anywhere beyond the AI request described above.</li>
+  <li><strong>Beacon AI's own backend does not maintain a database.</strong> It is a stateless service — each request is processed and forgotten. Beacon AI does not keep logs of your questions, page content, or responses beyond what's operationally necessary to process the request in the moment.</li>
+</ul>
+
+<h2>Third-party services involved</h2>
+<ul>
+  <li><strong>Google</strong> — speech-to-text transcription, via the browser's built-in Web Speech API. Subject to Google's own privacy practices for this service.</li>
+  <li><strong>Anthropic</strong> — page content and your request text are sent to Anthropic's Claude API to generate responses. Subject to Anthropic's API data handling terms.</li>
+  <li><strong>Railway</strong> — hosts Beacon AI's backend server, which relays requests to Anthropic. Railway does not receive your voice audio.</li>
+</ul>
+
+<h2>What Beacon AI does not do</h2>
+<ul>
+  <li>Does not require account creation, sign-in, or any personally identifiable information</li>
+  <li>Does not sell or share data with advertisers</li>
+  <li>Does not track browsing history beyond the single page you actively ask about</li>
+  <li>Does not read form inputs, passwords, or other private page fields</li>
+  <li>Does not listen continuously — voice input only activates when you explicitly start it</li>
+</ul>
+
+<h2>Children's privacy</h2>
+<p>Beacon AI is not directed at children and is not knowingly used to collect data from children.</p>
+
+<h2>Changes to this policy</h2>
+<p>If this policy changes, the "Last updated" date above will change accordingly. Material changes will also be reflected in the extension's in-app "Privacy &amp; Data" explanation.</p>
+
+<h2>Contact</h2>
+<p>Questions about this policy or how Beacon AI handles data can be raised via the project's GitHub repository: <a href="https://github.com/Ponnusa/beacon-ai">github.com/Ponnusa/beacon-ai</a>.</p>
+
+</body>
+</html>

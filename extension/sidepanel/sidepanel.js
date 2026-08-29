@@ -209,7 +209,16 @@ chrome.storage.local.get(
   }
 );
 
+// Onboarding is voice-driven wherever possible, not just button-driven —
+// someone who can't click (fully blind, no screen-reader fluency yet) still
+// needs a way through setup. Buttons stay too, both as a fallback and for
+// sighted/low-vision users who simply prefer them.
+let currentOnboardingActions = [];
+let onboardingRetryCount = 0; // per-question — reset whenever a new step is presented
+
 function setOnboardingActions(buttons) {
+  currentOnboardingActions = buttons;
+  onboardingRetryCount = 0;
   onboardingActionsEl.innerHTML = "";
   buttons.forEach(({ label, primary, onClick }) => {
     const btn = document.createElement("button");
@@ -218,6 +227,69 @@ function setOnboardingActions(buttons) {
     btn.addEventListener("click", onClick);
     onboardingActionsEl.appendChild(btn);
   });
+}
+
+function matchOnboardingVoice(transcript) {
+  const text = transcript.trim().toLowerCase();
+  if (/^skip\b|skip for now|skip setup/.test(text)) return { onClick: skipOnboarding };
+  for (const action of currentOnboardingActions) {
+    if (action.voiceTriggers?.some((trigger) => text.includes(trigger))) {
+      return action;
+    }
+  }
+  return null;
+}
+
+async function isMicPermissionGranted() {
+  if (!navigator.permissions?.query) return false;
+  try {
+    const status = await navigator.permissions.query({ name: "microphone" });
+    return status.state === "granted";
+  } catch {
+    return false;
+  }
+}
+
+async function startOnboardingListening() {
+  if (!recognition || onboardingEl.hidden) return;
+  if (!(await isMicPermissionGranted())) return; // stay button-only until mic access exists
+  try {
+    recognition.start();
+  } catch {
+    // Already listening, or transiently unavailable — the buttons still work either way.
+  }
+}
+
+function describeOnboardingOptions() {
+  const labels = currentOnboardingActions.map((a) => a.label);
+  if (labels.length === 0) return "";
+  if (labels.length === 1) return `You can say "${labels[0]}."`;
+  const quoted = labels.map((l) => `"${l}"`);
+  return `You can say ${quoted.slice(0, -1).join(", ")}, or ${quoted[quoted.length - 1]}.`;
+}
+
+// Shared by "heard nothing" (silence timeout) and "heard something, but it
+// didn't match" — from the user's side these are the same event: they still
+// need an answer. Always repeats the options and keeps listening again;
+// never just gives up. After a few tries, adds a gentle nudge toward the
+// buttons in case voice recognition itself isn't working well right now.
+function promptOnboardingRetry(reasonPrefix) {
+  onboardingRetryCount += 1;
+  const escalation =
+    onboardingRetryCount >= 3
+      ? " I'm having a little trouble hearing you — you can also just click one of the buttons in the panel."
+      : "";
+  const message = `${reasonPrefix} ${describeOnboardingOptions()}${escalation}`;
+  speak(message).then(() => startOnboardingListening());
+}
+
+function handleOnboardingTranscript(transcript) {
+  const action = matchOnboardingVoice(transcript);
+  if (action) {
+    action.onClick();
+    return;
+  }
+  promptOnboardingRetry("Sorry, I didn't catch that.");
 }
 
 function showOnboarding() {
@@ -231,22 +303,42 @@ function finishOnboarding() {
   mainContentEl.hidden = false;
 }
 
-function startOnboardingWelcome() {
-  const message =
-    "Welcome to Beacon AI. Let's quickly set up your preferences so everything is comfortable for you. This will only take a minute.";
-  onboardingPromptEl.textContent = message;
-  speak(message);
-  setOnboardingActions([{ label: "Get Started", primary: true, onClick: startSpeechRateCalibration }]);
+function skipOnboarding() {
+  chrome.storage.local.set({ onboardingComplete: true });
+  finishOnboarding();
 }
 
-function startSpeechRateCalibration() {
-  const sample = "This is a sample of how I will sound when I read to you.";
-  onboardingPromptEl.textContent = "Listen to this sample. Is the speed comfortable for you?";
-  speak(sample);
+async function startOnboardingWelcome() {
+  const message =
+    "Welcome to Beacon AI. Let's quickly set up your preferences so everything is comfortable for you. " +
+    'This will only take a minute. Say "get started" whenever you\'re ready, or click the button below.';
+  onboardingPromptEl.textContent = message;
   setOnboardingActions([
-    { label: "That's comfortable", primary: true, onClick: startZoomCalibration },
+    {
+      label: "Get Started",
+      primary: true,
+      onClick: startSpeechRateCalibration,
+      voiceTriggers: ["get started", "start", "begin", "ready", "yes"],
+    },
+  ]);
+  await speak(message);
+  startOnboardingListening();
+}
+
+async function startSpeechRateCalibration() {
+  const sample = "This is a sample of how I will sound when I read to you.";
+  const prompt = 'Is that speed comfortable for you? Say "comfortable," "faster," or "slower."';
+  onboardingPromptEl.textContent = `Listen to this sample. ${prompt}`;
+  setOnboardingActions([
+    {
+      label: "That's comfortable",
+      primary: true,
+      onClick: startZoomCalibration,
+      voiceTriggers: ["comfortable", "good", "fine", "yes", "that works"],
+    },
     {
       label: "Slower",
+      voiceTriggers: ["slower", "slow down", "too fast"],
       onClick: () => {
         speechRate = Math.max(SPEECH_RATE_MIN, +(speechRate - SPEECH_RATE_STEP).toFixed(2));
         chrome.storage.local.set({ speechRate });
@@ -255,6 +347,7 @@ function startSpeechRateCalibration() {
     },
     {
       label: "Faster",
+      voiceTriggers: ["faster", "speed up", "too slow"],
       onClick: () => {
         speechRate = Math.min(SPEECH_RATE_MAX, +(speechRate + SPEECH_RATE_STEP).toFixed(2));
         chrome.storage.local.set({ speechRate });
@@ -262,6 +355,9 @@ function startSpeechRateCalibration() {
       },
     },
   ]);
+  await speak(sample);
+  await speak(prompt);
+  startOnboardingListening();
 }
 
 function applyOnboardingZoom() {
@@ -275,13 +371,18 @@ function applyOnboardingZoom() {
 
 async function startZoomCalibration() {
   await applyOnboardingZoom();
-  const message = `I've set the page zoom to ${onboardingZoomPercent} percent. Take a look at the page — can you read it comfortably?`;
+  const message = `I've set the page zoom to ${onboardingZoomPercent} percent. Take a look at the page — can you read it comfortably? Say "yes," "bigger," or "smaller."`;
   onboardingPromptEl.textContent = message;
-  speak(message);
   setOnboardingActions([
-    { label: "Yes, I can read it", primary: true, onClick: startThemeCalibration },
+    {
+      label: "Yes, I can read it",
+      primary: true,
+      onClick: startThemeCalibration,
+      voiceTriggers: ["yes", "comfortable", "good", "fine", "i can read it"],
+    },
     {
       label: "Make it bigger",
+      voiceTriggers: ["bigger", "larger", "increase"],
       onClick: async () => {
         onboardingZoomPercent = Math.min(ONBOARDING_ZOOM_MAX, onboardingZoomPercent + ONBOARDING_ZOOM_STEP);
         await startZoomCalibration();
@@ -289,33 +390,43 @@ async function startZoomCalibration() {
     },
     {
       label: "Make it smaller",
+      voiceTriggers: ["smaller", "decrease"],
       onClick: async () => {
         onboardingZoomPercent = Math.max(ONBOARDING_ZOOM_MIN, onboardingZoomPercent - ONBOARDING_ZOOM_STEP);
         await startZoomCalibration();
       },
     },
   ]);
+  await speak(message);
+  startOnboardingListening();
 }
 
 let onboardingThemeIndex = 0;
 
-function startThemeCalibration() {
+async function startThemeCalibration() {
   const theme = THEMES[onboardingThemeIndex];
   applyTheme(theme.value);
   chrome.runtime.sendMessage({ type: "APPLY_PAGE_THEME", theme: theme.value }); // preview on the real page too
-  const message = `Here's the ${theme.label} color scheme. Take a look at both this panel and the page behind it — does this look comfortable?`;
+  const message = `Here's the ${theme.label} color scheme. Take a look at both this panel and the page behind it — does this look comfortable? Say "good" or "try another."`;
   onboardingPromptEl.textContent = message;
-  speak(message);
   setOnboardingActions([
-    { label: "This looks good", primary: true, onClick: completeOnboarding },
+    {
+      label: "This looks good",
+      primary: true,
+      onClick: completeOnboarding,
+      voiceTriggers: ["good", "yes", "comfortable", "looks good", "fine"],
+    },
     {
       label: "Try another",
+      voiceTriggers: ["another", "try another", "next", "different"],
       onClick: () => {
         onboardingThemeIndex = (onboardingThemeIndex + 1) % THEMES.length;
         startThemeCalibration();
       },
     },
   ]);
+  await speak(message);
+  startOnboardingListening();
 }
 
 function completeOnboarding() {
@@ -329,10 +440,7 @@ function completeOnboarding() {
   finishOnboarding();
 }
 
-skipOnboardingBtn.addEventListener("click", () => {
-  chrome.storage.local.set({ onboardingComplete: true });
-  finishOnboarding();
-});
+skipOnboardingBtn.addEventListener("click", skipOnboarding);
 
 redoSetupBtn.addEventListener("click", () => {
   onboardingZoomPercent = 100;
@@ -380,6 +488,9 @@ stopSpeakingBtn.addEventListener("click", () => {
   window.speechSynthesis.cancel();
 });
 
+// Resolves once the utterance finishes (naturally or interrupted), so callers
+// that need to sequence "speak, then listen" can just `await speak(...)`.
+// Callers that don't care can keep calling it fire-and-forget as before.
 async function speak(text, lang, { trackable = false } = {}) {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
@@ -396,15 +507,22 @@ async function speak(text, lang, { trackable = false } = {}) {
 
   if (lang && lang.toLowerCase() !== "en" && !voice) {
     console.log(`[Beacon TTS] no voice for lang=${lang} (voices seen: ${voices.length}) -> fallback message`);
-    const fallback = new SpeechSynthesisUtterance(
-      "I don't have a voice available to read this language aloud, but you can see the text above."
-    );
-    fallback.rate = speechRate;
-    fallback.onstart = () => setSpeakingUI(true);
-    fallback.onend = () => setSpeakingUI(false);
-    fallback.onerror = () => setSpeakingUI(false);
-    window.speechSynthesis.speak(fallback);
-    return;
+    return new Promise((resolve) => {
+      const fallback = new SpeechSynthesisUtterance(
+        "I don't have a voice available to read this language aloud, but you can see the text above."
+      );
+      fallback.rate = speechRate;
+      fallback.onstart = () => setSpeakingUI(true);
+      fallback.onend = () => {
+        setSpeakingUI(false);
+        resolve();
+      };
+      fallback.onerror = () => {
+        setSpeakingUI(false);
+        resolve();
+      };
+      window.speechSynthesis.speak(fallback);
+    });
   }
 
   const utterance = new SpeechSynthesisUtterance(text);
@@ -417,22 +535,28 @@ async function speak(text, lang, { trackable = false } = {}) {
   }
 
   console.log(`[Beacon TTS] lang=${lang || "(none)"} voices=${voices.length} voice=${voice?.name || "(none)"} utter.lang=${utterance.lang || "(default)"} rate=${speechRate}`);
-  utterance.onstart = () => setSpeakingUI(true);
-  utterance.onboundary = (e) => {
-    if (trackable) lastSpokenCharIndex = e.charIndex;
-  };
-  utterance.onend = () => {
-    setSpeakingUI(false);
-    if (trackable) lastSpokenCharIndex = text.length;
-  };
-  utterance.onerror = (e) => {
-    setSpeakingUI(false);
-    // "canceled"/"interrupted" just mean a later speak() call cut this one off
-    // (our own cancel-before-speak pattern) — expected, not a real failure.
-    if (e.error === "canceled" || e.error === "interrupted") return;
-    console.error("[Beacon TTS] error", e.error);
-  };
-  window.speechSynthesis.speak(utterance);
+  return new Promise((resolve) => {
+    utterance.onstart = () => setSpeakingUI(true);
+    utterance.onboundary = (e) => {
+      if (trackable) lastSpokenCharIndex = e.charIndex;
+    };
+    utterance.onend = () => {
+      setSpeakingUI(false);
+      if (trackable) lastSpokenCharIndex = text.length;
+      resolve();
+    };
+    utterance.onerror = (e) => {
+      setSpeakingUI(false);
+      if (trackable) lastSpokenCharIndex = text.length;
+      // "canceled"/"interrupted" just mean a later speak() call cut this one off
+      // (our own cancel-before-speak pattern) — expected, not a real failure.
+      if (e.error !== "canceled" && e.error !== "interrupted") {
+        console.error("[Beacon TTS] error", e.error);
+      }
+      resolve();
+    };
+    window.speechSynthesis.speak(utterance);
+  });
 }
 
 function setListeningUI(isListening) {
@@ -474,6 +598,14 @@ if (SpeechRecognitionImpl) {
       return;
     }
 
+    if (event.error === "no-speech" && !onboardingEl.hidden) {
+      // Silence, not a misheard answer — but staying quiet here would leave
+      // a blind user with no way to tell "still waiting" from "broken."
+      // Re-announce the options rather than restarting listening silently.
+      promptOnboardingRetry("I didn't hear anything.");
+      return;
+    }
+
     const reason =
       event.error === "no-speech"
         ? "I didn't hear anything."
@@ -487,7 +619,11 @@ if (SpeechRecognitionImpl) {
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
     transcriptEl.textContent = `Heard: "${transcript}"`;
-    handleTranscript(transcript);
+    if (!onboardingEl.hidden) {
+      handleOnboardingTranscript(transcript);
+    } else {
+      handleTranscript(transcript);
+    }
   };
 } else {
   voiceStatusEl.textContent = "Voice input isn't supported in this browser.";
