@@ -97,6 +97,27 @@ test("google search command", () => {
   });
 });
 
+test("list results command", () => {
+  assert.deepEqual(matchIntent("list results"), { command: "listResults", args: {} });
+  assert.deepEqual(matchIntent("list the links"), { command: "listResults", args: {} });
+  assert.deepEqual(matchIntent("what are the results"), { command: "listResults", args: {} });
+});
+
+test("open result command", () => {
+  assert.deepEqual(matchIntent("choose the first news"), { command: "openResult", args: { position: 1 } });
+  assert.deepEqual(matchIntent("open result 2"), { command: "openResult", args: { position: 2 } });
+  assert.deepEqual(matchIntent("select the third one"), { command: "openResult", args: { position: 3 } });
+  assert.deepEqual(matchIntent("go to number 5"), { command: "openResult", args: { position: 5 } });
+  assert.deepEqual(matchIntent("pick the tenth result"), { command: "openResult", args: { position: 10 } });
+});
+
+test("open result does not swallow scroll/zoom/navigation commands", () => {
+  assert.deepEqual(matchIntent("go to the top"), { command: "scrollToTop", args: {} });
+  assert.deepEqual(matchIntent("go to the bottom"), { command: "scrollToBottom", args: {} });
+  assert.deepEqual(matchIntent("zoom to 150 percent"), { command: "zoomTo", args: { percent: 150 } });
+  assert.deepEqual(matchIntent("go back"), { command: "goBack", args: {} });
+});
+
 test("google search does not swallow more specific commands", () => {
   // Regression guard: a broad "search X" pattern must not steal phrases
   // that belong to earlier, more specific rules.

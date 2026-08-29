@@ -96,6 +96,33 @@ async function getActiveTab() {
   return tab;
 }
 
+// Shared extraction path (PDF vs. regular page), reused by the debug
+// "Extract Page Text" button and by listResults/openResult below. Returns
+// whatever content.js/extractPdfText produced, including `.links` when
+// available (PDFs don't currently extract links -- see content.js).
+async function extractCurrentPage() {
+  const tab = await getActiveTab();
+  if (!tab?.id) return { error: "no_active_tab" };
+
+  if (isPdfUrl(tab.url)) {
+    try {
+      return await extractPdfText(tab);
+    } catch (err) {
+      return { error: "pdf_extraction_failed", message: String(err?.message || err) };
+    }
+  }
+
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "EXTRACT_PAGE_TEXT" }, (response) => {
+      if (chrome.runtime.lastError) {
+        resolve({ error: "extraction_failed", message: chrome.runtime.lastError.message });
+        return;
+      }
+      resolve(response);
+    });
+  });
+}
+
 const CONFIRMATIONS = {
   zoomIn: "Zoomed in",
   zoomOut: "Zoomed out",
@@ -678,7 +705,7 @@ listenBtn.addEventListener("click", () => {
   }
 });
 
-function handleTranscript(transcript) {
+async function handleTranscript(transcript) {
   const intent = window.BeaconCommands ? window.BeaconCommands.matchIntent(transcript) : null;
 
   if (!intent) {
@@ -688,6 +715,65 @@ function handleTranscript(transcript) {
 
   if (LOCAL_SPEECH_COMMANDS.has(intent.command)) {
     handleSpeechRateCommand(intent.command);
+    return;
+  }
+
+  if (intent.command === "listResults") {
+    voiceStatusEl.textContent = "One moment...";
+    setBusy(true);
+    const extraction = await extractCurrentPage();
+    setBusy(false);
+    const links = extraction?.links || [];
+    if (!links.length) {
+      const message = "I couldn't find any links on this page.";
+      voiceStatusEl.textContent = message;
+      speak(message);
+      return;
+    }
+    const numbered = links.map((l, i) => `${i + 1}. ${l.title}`);
+    voiceStatusEl.textContent = "Here are the results";
+    aiResponseEl.textContent = numbered.join("\n");
+    speak(`Here are the top ${links.length} results. ${numbered.join(". ")}`);
+    return;
+  }
+
+  if (intent.command === "openResult") {
+    const position = intent.args?.position;
+    voiceStatusEl.textContent = "One moment...";
+    setBusy(true);
+    const extraction = await extractCurrentPage();
+    setBusy(false);
+    const links = extraction?.links || [];
+    if (!links.length) {
+      const message = "I couldn't find any links on this page.";
+      voiceStatusEl.textContent = message;
+      speak(message);
+      return;
+    }
+    if (!position || position > links.length) {
+      const message = `I only found ${links.length} results on this page — which one would you like?`;
+      voiceStatusEl.textContent = message;
+      speak(message);
+      return;
+    }
+    const target = links[position - 1];
+    voiceStatusEl.textContent = `Opening "${target.title}"`;
+    setBusy(true);
+    chrome.runtime.sendMessage(
+      { type: "EXECUTE_COMMAND", command: "navigateTo", args: { url: target.href } },
+      (response) => {
+        setBusy(false);
+        if (chrome.runtime.lastError || !response || response.error) {
+          const message = "I couldn't open that.";
+          voiceStatusEl.textContent = message;
+          speak(message);
+          return;
+        }
+        const confirmation = `Opening ${target.title}`;
+        voiceStatusEl.textContent = confirmation;
+        speak(confirmation);
+      }
+    );
     return;
   }
 

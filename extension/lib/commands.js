@@ -23,6 +23,32 @@
     return fallback;
   }
 
+  const ORDINAL_WORDS = {
+    first: 1,
+    second: 2,
+    third: 3,
+    fourth: 4,
+    fifth: 5,
+    sixth: 6,
+    seventh: 7,
+    eighth: 8,
+    ninth: 9,
+    tenth: 10,
+  };
+
+  function parseOrdinal(text) {
+    const lower = text.toLowerCase();
+    const numMatch = lower.match(/\b(\d{1,2})(?:st|nd|rd|th)?\b/);
+    if (numMatch) {
+      const n = parseInt(numMatch[1], 10);
+      if (!Number.isNaN(n) && n > 0) return n;
+    }
+    for (const word in ORDINAL_WORDS) {
+      if (lower.includes(word)) return ORDINAL_WORDS[word];
+    }
+    return null;
+  }
+
   const DEFINE_PATTERNS = [
     /^define\s+(.+)$/i,
     /what does\s+(.+?)\s+mean\??$/i,
@@ -83,6 +109,22 @@
       command: "defineWord",
       test: (t) => parseDefineTerm(t) !== null,
       args: (t) => ({ term: parseDefineTerm(t) }),
+    },
+    {
+      command: "listResults",
+      test: (t) =>
+        /list (the )?(results|links)|what are the results|show me the (results|links)|read the results/.test(t),
+    },
+    {
+      // "open/choose/select/pick the Nth [thing]" -- the trailing noun
+      // ("result", "news", "article", "one") is deliberately not required;
+      // position is all that matters, matching how the trigger phrase was
+      // first used ("choose the first news").
+      command: "openResult",
+      test: (t) =>
+        /\b(open|choose|select|pick|go to)\b/.test(t) &&
+        /\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\d{1,2}(st|nd|rd|th)?)\b/.test(t),
+      args: (t) => ({ position: parseOrdinal(t) }),
     },
     {
       // Broad "search X" catch-all — kept late in the rule order (same
