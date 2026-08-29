@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Beacon AI — Developer Manual</title>
+<style>
+  @page { margin: 2cm 1.8cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", -apple-system, Arial, sans-serif;
+    color: #14171a;
+    line-height: 1.55;
+    font-size: 12.5pt;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .cover {
+    min-height: 24cm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+  .cover .badge {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: #1a56db;
+    margin-bottom: 24px;
+  }
+  .cover h1 { font-size: 34pt; margin: 0 0 8px; }
+  .cover p.subtitle { font-size: 14pt; color: #4a5157; margin: 0 0 32px; }
+  .cover .meta { font-size: 10.5pt; color: #6b7280; }
+  h1 { font-size: 22pt; border-bottom: 3px solid #1a56db; padding-bottom: 8px; margin-top: 0; }
+  h2 {
+    font-size: 16pt;
+    color: #1a56db;
+    margin-top: 32px;
+    padding-top: 6px;
+    border-top: 1px solid #e2e5e8;
+  }
+  h3 { font-size: 13pt; margin-top: 20px; }
+  section { page-break-inside: avoid; }
+  code, pre {
+    font-family: "Consolas", "SFMono-Regular", monospace;
+    font-size: 10.5pt;
+  }
+  pre {
+    background: #f5f7f8;
+    border: 1px solid #d5d9dc;
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+  code.inline {
+    background: #f0f2f4;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  img {
+    max-width: 100%;
+    border: 1px solid #d5d9dc;
+    border-radius: 8px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+  figcaption { font-size: 10pt; color: #6b7280; margin: -6px 0 16px; }
+  .callout {
+    background: #f5f7f8;
+    border-left: 4px solid #1a56db;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin: 14px 0;
+  }
+  .grid2 { display: flex; gap: 24px; }
+  .grid2 > div { flex: 1; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 11pt; }
+  th, td { border: 1px solid #d5d9dc; padding: 6px 10px; text-align: left; }
+  th { background: #f5f7f8; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="badge"></div>
+  <h1>Beacon AI</h1>
+  <p class="subtitle">Developer Manual — Install, Run, and Extend</p>
+  <p class="meta">A voice-controlled, AI-powered accessibility browser extension for Chrome,<br/>built for blind and low-vision users.</p>
+</div>
+
+<h1>1. What's in this repo</h1>
+<pre>Beacon/
+  extension/       — the Chrome extension itself (Manifest V3)
+  backend/         — FastAPI backend that calls the Claude API (deployed to Railway)
+  docs/            — this manual, the user manual, and screenshots
+  PROJECT_PLAN.md  — full product spec, design principles, open questions</pre>
+
+<h1>2. Quickest way to try it (no backend setup needed)</h1>
+<p>The extension already points at a <strong>deployed backend</strong> on Railway, so nothing needs to run locally just to try Beacon AI out.</p>
+
+<ol>
+  <li>Open Chrome and go to <code class="inline">chrome://extensions</code></li>
+  <li>Turn on <strong>Developer mode</strong> (top-right toggle)</li>
+  <li>Click <strong>Load unpacked</strong></li>
+  <li>Select the <code class="inline">extension/</code> folder from this repo</li>
+</ol>
+<figure>
+  <img src="images/load-unpacked.png" alt="Chrome extensions page with Developer mode on and Load unpacked highlighted" />
+  <figcaption>Developer mode + Load unpacked, on the chrome://extensions page.</figcaption>
+</figure>
+
+<ol start="5">
+  <li>Pin the extension (puzzle-piece icon in the toolbar → pin Beacon AI)</li>
+  <li>Click the Beacon AI icon — it opens a <strong>side panel</strong>, not a popup</li>
+</ol>
+<figure>
+  <img src="images/side-panel-main.png" alt="Beacon AI side panel open next to a Wikipedia article" />
+  <figcaption>The main panel, open alongside a page.</figcaption>
+</figure>
+
+<div class="callout">
+  <strong>Allow local file access</strong> (needed for the PDF-reading feature): go to <code class="inline">chrome://extensions</code>, find Beacon AI → <strong>Details</strong>, and toggle <strong>"Allow access to file URLs"</strong> on.
+</div>
+<figure>
+  <img src="images/allow-file-urls.png" alt="Extension details page with Allow access to file URLs toggle highlighted" />
+  <figcaption>This setting is easy to miss — it lives on the extension's Details page.</figcaption>
+</figure>
+
+<h2>First run</h2>
+<p>The panel walks through a short setup automatically the first time: speech rate, page zoom, and contrast theme, each calibrated by trying it live and confirming it's comfortable. Redo this any time — say <em>"redo setup"</em> or click <strong>Redo Setup</strong> in the panel.</p>
+
+<figure>
+  <img src="images/onboarding-zoom.png" alt="Onboarding zoom step showing the actual page zoomed to 200 percent" />
+  <figcaption>Zoom calibration applies a candidate zoom to the real page, not just a description.</figcaption>
+</figure>
+
+<figure>
+  <img src="images/onboarding-theme.png" alt="Onboarding theme step showing yellow background, black text on both panel and page" />
+  <figcaption>Theme calibration previews live on both the panel and the page at once.</figcaption>
+</figure>
+
+<figure>
+  <img src="images/contrast-themes.png" alt="The same Wikipedia page shown in light, dark, yellow-black, and black-yellow themes" />
+  <figcaption>Once chosen, a theme applies to any page you read — not just the panel. Clockwise from top-left: light, dark, black-yellow, yellow-black.</figcaption>
+</figure>
+
+<h2>Microphone permission (one-time, Chrome-specific quirk)</h2>
+<p>Chrome doesn't reliably prompt for microphone access from inside a side panel — a known Chrome limitation, not a bug in the extension. If voice input doesn't work the first time:</p>
+<ol>
+  <li>Click <strong>"Set Up Microphone Access"</strong> in the panel</li>
+  <li>A new tab opens with one button — click <strong>"Allow Microphone Access"</strong></li>
+  <li>Approve the browser's permission prompt in that tab</li>
+  <li>Close the tab and return to the side panel — it should now work</li>
+</ol>
+<figure>
+  <img src="images/mic-setup.png" alt="The dedicated mic-setup tab next to the side panel" />
+  <figcaption>A single-purpose page avoids the ambiguity of reusing the full panel UI for this step.</figcaption>
+</figure>
+
+<h2>Try it</h2>
+<p>Say "help" or click <strong>"What can I say?"</strong> in the panel for a categorized command list. Quick starting points:</p>
+<ul>
+  <li><em>"summarize this page"</em>, <em>"give me the key points"</em>, <em>"read this page"</em></li>
+  <li><em>"zoom in"</em>, <em>"scroll down"</em>, <em>"go back"</em></li>
+  <li><em>"translate this to Spanish"</em>, <em>"define [some word]"</em></li>
+  <li><em>"speak faster"</em> / <em>"speak slower"</em></li>
+  <li><em>"dark theme"</em>, <em>"yellow on black"</em></li>
+  <li><em>"privacy"</em> — what happens to your data</li>
+</ul>
+
+<h1>3. Running the backend locally</h1>
+<p>Only needed if you're changing backend code — the deployed Railway backend works out of the box otherwise.</p>
+<pre>cd backend
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env   # then edit .env and add your own ANTHROPIC_API_KEY
+
+uvicorn main:app --host 127.0.0.1 --port 8000</pre>
+
+<p>Then point the extension at your local backend — in <code class="inline">extension/background.js</code>, change:</p>
+<pre>const BACKEND_URL = "https://beacon-ai-production-4999.up.railway.app";</pre>
+<p>to:</p>
+<pre>const BACKEND_URL = "http://localhost:8000";</pre>
+<p>...and reload the extension. Switch it back before committing.</p>
+<p>Sanity check: <code class="inline">curl http://127.0.0.1:8000/health</code></p>
+
+<h1>4. Running the tests</h1>
+<p>The intent-matching logic (<code class="inline">extension/lib/commands.js</code> — every voice command's phrase matching) has a plain Node test suite, no browser needed:</p>
+<pre>cd extension
+node --test test/commands.test.js</pre>
+<p>There's no automated test suite for the rest of the extension (browser-side voice/AI/UI behavior) — that's verified by hand in Chrome, the appropriate surface for it.</p>
+
+<h1>5. Project structure</h1>
+<h2>Extension</h2>
+<pre>extension/
+  manifest.json          — MV3 config, permissions, side panel registration
+  background.js           — service worker: tab commands (zoom/scroll/nav), AI backend calls,
+                             page-content/PDF extraction caching, ambient zoom + contrast theme
+  content.js               — injected into pages on demand; runs Readability.js extraction
+  lib/
+    commands.js              — voice -> intent matching (regex-based), fully unit tested
+    pageCache.js              — chrome.storage.session-backed extraction cache
+    Readability.js            — vendored from @mozilla/readability
+    pdf.min.mjs, pdf.worker.min.mjs — vendored pdf.js, used for PDF text extraction
+  sidepanel/
+    sidepanel.html/js/css      — the main UI: voice controls, onboarding, settings
+    mic-setup.html/js           — the dedicated one-button mic permission page
+  test/
+    commands.test.js            — intent-matcher unit tests</pre>
+
+<h2>Backend</h2>
+<pre>backend/
+  main.py             — FastAPI app; single /query endpoint, Claude API call with prompt caching
+  requirements.txt
+  Procfile            — Railway start command
+  .env.example        — copy to .env locally, fill in ANTHROPIC_API_KEY</pre>
+
+<h1>6. Known limitations</h1>
+<ul>
+  <li>Chrome/Edge only (Manifest V3), no other browsers</li>
+  <li>TTS quality for non-English languages depends on what voices your OS/Chrome install has available — if none exist for a requested language, Beacon says so honestly rather than mangling the audio</li>
+  <li>Page-content contrast theming targets text-heavy pages; complex web apps/dashboards may render oddly when overridden</li>
+  <li>No automated end-to-end test suite — voice/AI/UI behavior is verified manually in Chrome</li>
+</ul>
+<p style="color:#6b7280; font-size:10.5pt;">See <code class="inline">PROJECT_PLAN.md</code> in the repo root for the full product spec, design principles, and open questions.</p>
+
+</body>
+</html>

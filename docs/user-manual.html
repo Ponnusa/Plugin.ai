@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Beacon AI — User Guide</title>
+<style>
+  @page { margin: 2.2cm 2cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", -apple-system, Arial, sans-serif;
+    color: #000000;
+    background: #ffffff;
+    line-height: 1.65;
+    font-size: 14pt;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .cover {
+    min-height: 24cm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+  .cover .badge {
+    display: inline-block;
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    background: #1a56db;
+    margin-bottom: 28px;
+  }
+  .cover h1 { font-size: 36pt; margin: 0 0 10px; }
+  .cover p.subtitle { font-size: 16pt; color: #333333; margin: 0 0 36px; }
+  .cover p.welcome { font-size: 13pt; color: #333333; max-width: 480px; }
+  h1 {
+    font-size: 22pt;
+    color: #1a56db;
+    border-bottom: 3px solid #1a56db;
+    padding-bottom: 8px;
+    margin-top: 40px;
+  }
+  h1:first-of-type { margin-top: 0; }
+  h2 { font-size: 16pt; margin-top: 26px; }
+  section { page-break-inside: avoid; }
+  p { margin: 10px 0; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  img {
+    max-width: 100%;
+    border: 1px solid #cccccc;
+    border-radius: 10px;
+    margin: 14px 0;
+    page-break-inside: avoid;
+  }
+  figcaption { font-size: 11pt; color: #444444; margin: -8px 0 18px; }
+  .say {
+    font-style: italic;
+    background: #f5f7f8;
+    border-radius: 6px;
+    padding: 1px 8px;
+  }
+  .callout {
+    background: #f5f7f8;
+    border-left: 5px solid #1a56db;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 18px 0;
+  }
+  .privacy-box {
+    background: #fffbe6;
+    border: 2px solid #d4b800;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 16px 0;
+    font-size: 13.5pt;
+  }
+  .category { margin-bottom: 22px; }
+  .category h2 { color: #1a56db; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="badge"></div>
+  <h1>Beacon AI</h1>
+  <p class="subtitle">A voice guide to the web — User Guide</p>
+  <p class="welcome">Beacon AI is a voice assistant that helps you understand, navigate, and read any webpage out loud — built with and for blind and low-vision people. This guide walks through getting set up and everything you can say to it.</p>
+</div>
+
+<h1>Welcome</h1>
+<p>You don't need to already be an expert with screen readers or assistive technology to use Beacon AI. It's built to work comfortably whether this is the first accessibility tool you've ever used, or you've used others for years.</p>
+<p>Everything in Beacon AI is adjustable — how fast it speaks, how large the page appears, and what colors it uses — and you can change any of it at any time, not just when you're first setting up. Vision needs change over time, and Beacon AI is built to change with you.</p>
+
+<h1>Getting Set Up</h1>
+<p>Installing Beacon AI involves a few technical steps in Chrome's settings. If you have a sighted friend, family member, or someone from your assistive technology center nearby, it's completely fine to ask for a hand with this one-time setup — everything after this is entirely voice-driven.</p>
+<ol>
+  <li>Open Google Chrome</li>
+  <li>Go to <strong>chrome://extensions</strong> and turn on <strong>Developer mode</strong></li>
+  <li>Click <strong>Load unpacked</strong> and select the Beacon AI folder</li>
+</ol>
+<figure>
+  <img src="images/load-unpacked.png" alt="Chrome extensions page showing the Load unpacked button" />
+</figure>
+<p>Once installed, click the Beacon AI icon in Chrome's toolbar. It opens as a panel on the side of your browser window, and stays there as you browse.</p>
+<figure>
+  <img src="images/side-panel-main.png" alt="Beacon AI's side panel open next to a webpage" />
+</figure>
+
+<h1>Your First Time Using Beacon AI</h1>
+<p>The very first time you open Beacon AI, it walks you through a short setup — about a minute — to get things comfortable for you specifically. Nothing here is permanent; you can redo this setup any time by saying <span class="say">"redo setup."</span></p>
+
+<div class="category">
+  <h2>1. How fast Beacon AI speaks</h2>
+  <p>Beacon AI plays a sample sentence and asks if the speed feels right. Say or click "faster" or "slower" as many times as you like until it sounds comfortable.</p>
+</div>
+
+<div class="category">
+  <h2>2. How large the page appears</h2>
+  <p>Beacon AI zooms the actual page you're looking at — not just a description — and asks if you can read it comfortably. Keep adjusting until it's right.</p>
+  <figure>
+    <img src="images/onboarding-zoom.png" alt="Setup screen showing the page zoomed to 200 percent, asking if it's readable" />
+  </figure>
+</div>
+
+<div class="category">
+  <h2>3. Colors</h2>
+  <p>Beacon AI shows you a few color combinations — for example, a black background with white text, or a yellow background with black text — live, on both the panel and the page itself. Pick whichever is easiest on your eyes.</p>
+  <figure>
+    <img src="images/onboarding-theme.png" alt="Setup screen showing a yellow background with black text, applied to both the panel and the page" />
+  </figure>
+  <p>Whatever you choose follows you to every page you read afterward, automatically.</p>
+  <figure>
+    <img src="images/contrast-themes.png" alt="The same webpage shown in four different color themes" />
+  </figure>
+</div>
+
+<h1>Talking to Beacon AI</h1>
+<p>Beacon AI listens only when you tell it to — it is never listening in the background. This is deliberate: it means nothing you say gets picked up by accident.</p>
+<ul>
+  <li>Click <strong>"Start Listening"</strong>, then speak your request</li>
+  <li>If Beacon AI is talking and you want it to stop, click <strong>"Stop Speaking"</strong> — or just click Start Listening again, which interrupts it automatically so you never have to wait for it to finish</li>
+  <li>If you get interrupted partway through something Beacon AI was reading, say <span class="say">"continue reading"</span> and it picks up from where it left off, instead of starting over</li>
+</ul>
+
+<h2>If the microphone doesn't respond the first time</h2>
+<p>This is a one-time Chrome quirk, not a problem with Beacon AI. If it happens:</p>
+<ol>
+  <li>Click <strong>"Set Up Microphone Access"</strong> in the panel</li>
+  <li>A new tab opens with one button — click it</li>
+  <li>Approve Chrome's permission request</li>
+  <li>Close that tab and go back to the panel — it will work from then on</li>
+</ol>
+<figure>
+  <img src="images/mic-setup.png" alt="The one-button microphone setup page next to the Beacon AI panel" />
+</figure>
+
+<h1>Things You Can Say</h1>
+<p>You never need to memorize this list — say <span class="say">"help"</span> or click <strong>"What can I say?"</strong> in the panel any time, and Beacon AI will remind you, grouped into short categories rather than one long list.</p>
+
+<div class="category">
+  <h2>Getting around the page</h2>
+  <p>"zoom in," "zoom out," or "zoom to a percent" &nbsp;•&nbsp; "scroll up," "scroll down," "scroll to the top," "scroll to the bottom" &nbsp;•&nbsp; "go back" or "go forward"</p>
+</div>
+
+<div class="category">
+  <h2>Understanding what's on the page</h2>
+  <p>"read this page" &nbsp;•&nbsp; "summarize this page" &nbsp;•&nbsp; "give me the key points" &nbsp;•&nbsp; "simplify this" &nbsp;•&nbsp; "define" a word, like "define osmosis" &nbsp;•&nbsp; "translate this to" a language, like "translate this to Spanish" &nbsp;•&nbsp; or simply ask any question about what's on the page</p>
+</div>
+
+<div class="category">
+  <h2>Adjusting Beacon AI itself</h2>
+  <p>"speak faster" or "speak slower" &nbsp;•&nbsp; "continue reading" &nbsp;•&nbsp; "dark theme," "yellow background," or "yellow on black" &nbsp;•&nbsp; "redo setup" to recalibrate everything &nbsp;•&nbsp; "privacy" to hear what happens with your information</p>
+</div>
+
+<h1>Your Privacy and Your Data</h1>
+<p>You can hear this any time by saying <span class="say">"privacy"</span> — here it is in full, so you have it in writing too.</p>
+
+<div class="privacy-box">
+  <p>Here's what happens with your information, plainly.</p>
+  <p>When you speak, your voice goes to Google's speech recognition service to turn it into text — Beacon AI does not record or store your voice.</p>
+  <p>When you ask about a page, that page's visible text is sent to Anthropic's Claude AI service to generate a response — never anything you type into forms, passwords, or private fields, only what's readable on the page.</p>
+  <p>Your personal preferences — speech speed, zoom level, and color theme — are stored only on this device.</p>
+  <p>Beacon AI itself does not keep a permanent record of what you've asked or read.</p>
+</div>
+
+<h1>A Closing Note</h1>
+<p>Everything about Beacon AI is meant to be adjustable, forgiving, and yours to shape — not something you have to adapt yourself to. If something isn't comfortable, there is almost always a way to change it: a different color, a different pace, a redo of setup, or simply asking a question a different way.</p>
+<p>If you're unsure what to do at any point, saying <span class="say">"help"</span> is always a safe place to start.</p>
+
+</body>
+</html>
