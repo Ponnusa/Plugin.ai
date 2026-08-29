@@ -4,6 +4,45 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((err) => console.error("Failed to set side panel behavior", err));
 
+// PROTOTYPE: page-content contrast override. Reuses the same theme colors as
+// the panel's own CSS themes. Targeted at text-carrying elements only —
+// deliberately leaves img/video/canvas/svg untouched, since Beacon's actual
+// scope is text-heavy pages, not general web-app re-theming (that's what
+// Dark Reader spends years of engineering on).
+const PAGE_THEME_COLORS = {
+  dark: { bg: "#000000", text: "#ffffff", link: "#6db4ff" },
+  "yellow-black": { bg: "#ffee00", text: "#000000", link: "#0033cc" },
+  "black-yellow": { bg: "#000000", text: "#ffee00", link: "#66ccff" },
+};
+const TEXT_SELECTORS =
+  "html, body, p, div, span, article, section, header, footer, main, aside, nav, " +
+  "h1, h2, h3, h4, h5, h6, li, ul, ol, td, th, table, label, blockquote, figcaption";
+
+function buildPageThemeCss(theme) {
+  const colors = PAGE_THEME_COLORS[theme];
+  if (!colors) return null;
+  return (
+    `${TEXT_SELECTORS} { background-color: ${colors.bg} !important; color: ${colors.text} !important; } ` +
+    `a, a * { color: ${colors.link} !important; }`
+  );
+}
+
+const injectedPageThemeCss = new Map(); // tabId -> css string currently applied, for clean removal
+
+async function applyPageTheme(tabId, theme) {
+  const previousCss = injectedPageThemeCss.get(tabId);
+  if (previousCss) {
+    await chrome.scripting.removeCSS({ target: { tabId }, css: previousCss, origin: "USER" }).catch(() => {});
+    injectedPageThemeCss.delete(tabId);
+  }
+
+  const css = buildPageThemeCss(theme);
+  if (!css) return; // "light" (or unknown) theme -> just remove, nothing to add
+
+  await chrome.scripting.insertCSS({ target: { tabId }, css, origin: "USER" });
+  injectedPageThemeCss.set(tabId, css);
+}
+
 // Ambient zoom: automatically apply the user's calibrated preferred zoom
 // (set during onboarding) to whatever page becomes active — same idea as a
 // sighted user's browser just always being at a comfortable size, rather
@@ -36,24 +75,47 @@ async function applyPreferredZoom(tabId, url) {
   }
 }
 
+// Ambient page theme: unlike zoom (which can legitimately vary per page —
+// a dense article may need more magnification than the baseline), contrast
+// theme is a single stable accessibility preference, so there's no per-tab
+// "manual override" concept to track — every tab just always reflects
+// whichever theme is currently stored, and saying a theme command updates
+// that stored value globally.
+async function applyPreferredPageTheme(tabId, url) {
+  if (isRestrictedUrl(url)) return;
+  const { contrastTheme } = await chrome.storage.local.get(["contrastTheme"]);
+  try {
+    await applyPageTheme(tabId, contrastTheme || "light");
+  } catch {
+    // Tab may have closed or navigated away mid-call — safe to ignore.
+  }
+}
+
 // Invalidate the cached extraction and any manual zoom override whenever a
 // tab starts loading (covers both navigating to a new URL and a plain
-// refresh), apply the preferred zoom once a page finishes loading, and clean
-// up on tab close.
+// refresh — a fresh page load has no CSS injected yet, so the theme map
+// entry is stale too), apply the preferred zoom + page theme once a page
+// finishes loading, and clean up on tab close.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "loading") {
     BeaconPageCache.clearCachedExtraction(tabId);
     manuallyZoomedTabs.delete(tabId); // a fresh page load resets to the calibrated default
+    injectedPageThemeCss.delete(tabId);
   }
   if (changeInfo.status === "complete") {
     applyPreferredZoom(tabId, tab.url);
+    applyPreferredPageTheme(tabId, tab.url);
   }
 });
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const tab = await chrome.tabs.get(tabId).catch(() => null);
-  if (tab) applyPreferredZoom(tabId, tab.url);
+  if (tab) {
+    applyPreferredZoom(tabId, tab.url);
+    applyPreferredPageTheme(tabId, tab.url);
+  }
 });
 chrome.tabs.onRemoved.addListener((tabId) => {
+  injectedPageThemeCss.delete(tabId);
   BeaconPageCache.clearCachedExtraction(tabId);
   manuallyZoomedTabs.delete(tabId);
 });
@@ -233,6 +295,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse(await callBackend(message.pageTitle, message.pageText, message.query));
       } catch (err) {
         sendResponse({ error: "ask_ai_failed", message: String(err?.message || err) });
+      }
+    })();
+    return true;
+  }
+
+  if (message?.type === "APPLY_PAGE_THEME") {
+    (async () => {
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab?.id) {
+          sendResponse({ error: "no_active_tab" });
+          return;
+        }
+        await applyPageTheme(tab.id, message.theme);
+        sendResponse({});
+      } catch (err) {
+        sendResponse({ error: "page_theme_failed", message: String(err?.message || err) });
       }
     })();
     return true;

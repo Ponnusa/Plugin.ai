@@ -199,6 +199,13 @@ chrome.storage.local.get(
         args: { percent: onboardingZoomPercent },
       });
     }
+
+    // Same redundant-safety-net reasoning as zoom above: background.js's
+    // ambient listeners cover future tab switches, but not a tab that was
+    // already active before the extension/panel loaded.
+    if (typeof result.contrastTheme === "string") {
+      chrome.runtime.sendMessage({ type: "APPLY_PAGE_THEME", theme: result.contrastTheme });
+    }
   }
 );
 
@@ -295,7 +302,8 @@ let onboardingThemeIndex = 0;
 function startThemeCalibration() {
   const theme = THEMES[onboardingThemeIndex];
   applyTheme(theme.value);
-  const message = `Here's the ${theme.label} color scheme. Does this look comfortable?`;
+  chrome.runtime.sendMessage({ type: "APPLY_PAGE_THEME", theme: theme.value }); // preview on the real page too
+  const message = `Here's the ${theme.label} color scheme. Take a look at both this panel and the page behind it — does this look comfortable?`;
   onboardingPromptEl.textContent = message;
   speak(message);
   setOnboardingActions([
@@ -558,6 +566,7 @@ function handleTranscript(transcript) {
     const theme = intent.args?.theme || "light";
     applyTheme(theme);
     chrome.storage.local.set({ contrastTheme: theme });
+    chrome.runtime.sendMessage({ type: "APPLY_PAGE_THEME", theme }); // prototype: also try it on the actual page
     const themeLabel = THEMES.find((t) => t.value === theme)?.label || theme;
     const message = `Switched to ${themeLabel}`;
     voiceStatusEl.textContent = message;
