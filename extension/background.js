@@ -32,7 +32,9 @@ const injectedPageThemeCss = new Map(); // tabId -> css string currently applied
 async function applyPageTheme(tabId, theme) {
   const previousCss = injectedPageThemeCss.get(tabId);
   if (previousCss) {
-    await chrome.scripting.removeCSS({ target: { tabId }, css: previousCss, origin: "USER" }).catch(() => {});
+    await chrome.scripting
+      .removeCSS({ target: { tabId }, css: previousCss, origin: "USER" })
+      .catch((err) => console.error(`[Beacon pageTheme] removeCSS failed for tab ${tabId}:`, err));
     injectedPageThemeCss.delete(tabId);
   }
 
@@ -41,6 +43,7 @@ async function applyPageTheme(tabId, theme) {
 
   await chrome.scripting.insertCSS({ target: { tabId }, css, origin: "USER" });
   injectedPageThemeCss.set(tabId, css);
+  console.log(`[Beacon pageTheme] insertCSS applied for tab ${tabId}, theme=${theme}`);
 }
 
 // Ambient zoom: automatically apply the user's calibrated preferred zoom
@@ -82,12 +85,16 @@ async function applyPreferredZoom(tabId, url) {
 // whichever theme is currently stored, and saying a theme command updates
 // that stored value globally.
 async function applyPreferredPageTheme(tabId, url) {
-  if (isRestrictedUrl(url)) return;
+  if (isRestrictedUrl(url)) {
+    console.log(`[Beacon pageTheme] skipping restricted url for tab ${tabId}: ${url}`);
+    return;
+  }
   const { contrastTheme } = await chrome.storage.local.get(["contrastTheme"]);
+  console.log(`[Beacon pageTheme] applying theme=${contrastTheme || "light"} to tab ${tabId} (${url})`);
   try {
     await applyPageTheme(tabId, contrastTheme || "light");
-  } catch {
-    // Tab may have closed or navigated away mid-call — safe to ignore.
+  } catch (err) {
+    console.error(`[Beacon pageTheme] failed for tab ${tabId}:`, err);
   }
 }
 
